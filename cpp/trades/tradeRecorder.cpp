@@ -9,27 +9,27 @@ using std::runtime_error;
 
 using boost::posix_time::microsec_clock;
 
-Trade::Trade (TradeOperation Operation, ptime TimeOfTrade, double PricePaid, double Quantity) {
+Trade::Trade (TradeOperation Operation, ptime TimeOfTrade, double UnitPrice, double Quantity) {
   operation = Operation;
   timeOfTrade = TimeOfTrade;
-  pricePaid = PricePaid;
+  unitPrice = UnitPrice;
   quantity = Quantity;
 }
 
 TradeRecorder::TradeRecorder(ConfigurationReader& config) {
 }
 
-void TradeRecorder::Record(TradeOperation operation, const string & stockSymbol, double pricePaid, double quantity) {
-  Record(microsec_clock::universal_time(), operation, stockSymbol, pricePaid, quantity);
+void TradeRecorder::Record(TradeOperation operation, const string & stockSymbol, double unitPrice, double quantity) {
+  Record(microsec_clock::universal_time(), operation, stockSymbol, unitPrice, quantity);
 }
 
-void TradeRecorder::Record(ptime timeOfTrade, TradeOperation operation, const string & stockSymbol, double pricePaid, double quantity) {
+void TradeRecorder::Record(ptime timeOfTrade, TradeOperation operation, const string & stockSymbol, double unitPrice, double quantity) {
   ptime timeNow = microsec_clock::universal_time() + (time_duration(0, 0, 1, 0));
   if (timeOfTrade > timeNow) {
     throw runtime_error("Time of trade cannot be in the future");
   }
   
-  Trade newTrade(operation, timeOfTrade, pricePaid, quantity);
+  Trade newTrade(operation, timeOfTrade, unitPrice, quantity);
 
   // Add to data table
   tradeTable.push_back(newTrade);
@@ -40,9 +40,7 @@ void TradeRecorder::Record(ptime timeOfTrade, TradeOperation operation, const st
     stockTradeConnectorTable.insert(pair<string, vector<Trade*>>(string(stockSymbol), vector<Trade*> {&tradeTable.back()}));
   } else {
     stockTradeConnectorTable[stockSymbol].push_back(&tradeTable.back());
-  }
-  
-  // Send a signal noting that a new trade has been added, with the trade data.
+  }  
 }
 
 void TradeRecorder::Load(const string & stockSymbol, vector<Trade>& trades, ptime timeOfTrade, time_duration boundary, TradeLoadBoundaryDirection boundaryDirection) {

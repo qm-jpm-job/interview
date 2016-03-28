@@ -11,9 +11,10 @@ OUTPUT_FILENAME=interview_test
 
 OBJECT_FILES=loader.o configReader.o iniConfigReader.o \
 	tickerPrice.o stock.o commonStock.o preferredStock.o \
-	dividendYieldCalculator.o floatCalculator.o doubleCalculator.o \
+	dividendYieldCalculator.o peRatioCalculator.o indexCalculator.o \
 	stockTicker.o \
 	tradeRecorder.o \
+	stockPriceCalculator.o \
 	main.o
 
 DYNAMIC_LIBRARIES=randomValuesStockTickerProvider.o
@@ -25,13 +26,13 @@ TOOLS_INC=-Itools/
 TICKER_INC=-Iticker/
 TRADES_INC=-Itrades/
 
-all: application dynamic_libraries unit_tests 
+all: application dynamic_libraries tests 
 
 clean:
 	@echo "Removing temporary files"
 	@rm *~
 
-unit_tests:
+tests:
 	@echo "Creating unit tests"
 
 application: $(OBJECT_FILES)
@@ -47,7 +48,7 @@ dynamic_libraries: $(DYNAMIC_LIBRARIES)
 
 main.o: main.cpp
 	@echo "Compiling main"
-	@$(CC) $(compile_flags) $(TICKER_INC) $(TOOLS_INC) $(STOCK_INC) $(CONFIG_INC) $(LOADER_INC) $(BOOST_INC) -c main.cpp 
+	@$(CC) $(compile_flags) $(TRADES_INC) $(TICKER_INC) $(TOOLS_INC) $(STOCK_INC) $(CONFIG_INC) $(LOADER_INC) $(BOOST_INC) -c main.cpp 
 
 randomValuesStockTickerProvider.o: ticker/randomValuesStockTickerProvider.cpp
 	@echo "Compiling randomValues Ticker"
@@ -55,6 +56,10 @@ randomValuesStockTickerProvider.o: ticker/randomValuesStockTickerProvider.cpp
 	@$(CC) $(link_flags) randomValuesStockTickerProvider.o -o librandomValuesStockTickerProvider.so 
 	@mv librandomValuesStockTickerProvider.so $(OUTPUT_DIR)
 	@rm randomValuesStockTickerProvider.o
+
+stockPriceCalculator.o: tools/stockPriceCalculator.cpp
+	@echo "Compiling stockPriceCalculator"
+	@$(CC) $(compile_flags) $(TRADES_INC) $(TOOLS_INC) $(CONFIG_INC) $(STOCK_INC) $(BOOST_INC) -c tools/stockPriceCalculator.cpp
 
 tradeRecorder.o: trades/tradeRecorder.cpp
 	@echo "Compiling tradeRecorder"
@@ -64,13 +69,13 @@ stockTicker.o: ticker/stockTicker.cpp
 	@echo "Compiling stockTicker"
 	@$(CC) $(compile_flags) $(TICKER_INC) $(CONFIG_INC) $(STOCK_INC) $(LOADER_INC) $(BOOST_INC) -c ticker/stockTicker.cpp
 
-doubleCalculator.o: tools/doubleCalculator.cpp
-	@echo "Compiling doubleCalculator"
-	@$(CC) $(compile_flags) $(STOCK_INC) $(BOOST_INC) -c tools/doubleCalculator.cpp
+indexCalculator.o: tools/indexCalculator.cpp
+	@echo "Compiling indexCalculator"
+	@$(CC) $(compile_flags) $(STOCK_INC) $(BOOST_INC) -c tools/indexCalculator.cpp
 
-floatCalculator.o: tools/floatCalculator.cpp
-	@echo "Compiling floatCalculator"
-	@$(CC) $(compile_flags) $(STOCK_INC) $(BOOST_INC) -c tools/floatCalculator.cpp
+peRatioCalculator.o: tools/peRatioCalculator.cpp
+	@echo "Compiling peRatioCalculator"
+	@$(CC) $(compile_flags) $(STOCK_INC) $(BOOST_INC) -c tools/peRatioCalculator.cpp
 
 dividendYieldCalculator.o: tools/dividendYieldCalculator.cpp
 	@echo "Compiling dividendYieldCalculator"

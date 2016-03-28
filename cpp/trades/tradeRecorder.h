@@ -33,7 +33,7 @@ class Trade {
  private:
   TradeOperation operation;  
   ptime timeOfTrade;
-  double pricePaid;
+  double unitPrice;
   double quantity;
 
  public:
@@ -42,7 +42,7 @@ class Trade {
 
   TradeOperation getOperation() const { return operation; }
   ptime getTimeOfTrade() const { return timeOfTrade; }
-  double getPricePaid() const { return pricePaid; }
+  double getUnitPrice() const { return unitPrice; }
   double getQuantity() const { return quantity; }
 };
 
@@ -56,9 +56,9 @@ class TradeRecorder {
  public:
   TradeRecorder(ConfigurationReader& config);
 
-  void Record(TradeOperation operation, const string & stockSymbol, double pricePaid, double quanity);
+  void Record(TradeOperation operation, const string & stockSymbol, double unitPrice, double quanity);
 
-  void Record(ptime tradeTime, TradeOperation operation, const string & stockSymbol, double pricePaid, double quanity);
+  void Record(ptime tradeTime, TradeOperation operation, const string & stockSymbol, double unitPrice, double quanity);
   
   // Loads all trades in the specified boundary
   void Load(const string & stockSymbol, vector<Trade>& trades, ptime timeOfTrade, time_duration boundary, TradeLoadBoundaryDirection boundaryDirection);
