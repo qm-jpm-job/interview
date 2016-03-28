@@ -33,6 +33,7 @@ class RandomValuesTickerProvider : public ITickerProvider {
   void initializeTickerPrice (double randomGeneratorSeedValue, const string & stockSymbol);
     
  public:
+  void shutdown() { }
   string getName() const { return PROVIDER_NAME; }
   
   void loadConfig() const;

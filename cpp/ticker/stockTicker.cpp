@@ -1,7 +1,5 @@
 #include <algorithm>
 
-
-
 #include "tickerPrice.h"
 #include "stockTicker.h"
 
@@ -10,6 +8,12 @@ StockTicker::StockTicker(ConfigurationReader& config, LibraryLoader& loader) {
   string loadFunction = config.getValue<string>("TickerPriceProviderInitFunction");
 
   quoteProvider = (ITickerProvider*)loader.GetInstance(providerToUse, loadFunction);
+}
+
+StockTicker::~StockTicker() {
+  // Need to free the pointer
+  quoteProvider->shutdown();
+  free(quoteProvider);
 }
 
 double StockTicker::getTickerPrice (string symbol) {

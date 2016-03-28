@@ -18,6 +18,7 @@ class StockTicker {
   
  public:
   StockTicker(ConfigurationReader& config, LibraryLoader& loader);
+  ~StockTicker();
   
   double getTickerPrice (string symbol);
 
