@@ -20,26 +20,27 @@ TradeRecorder::TradeRecorder(ConfigurationReader& config) {
 }
 
 void TradeRecorder::Record(TradeOperation operation, const string & stockSymbol, double pricePaid, double quantity) {
-  Record(microsec_clock::local_time(), operation, stockSymbol, pricePaid, quantity);
+  Record(microsec_clock::universal_time(), operation, stockSymbol, pricePaid, quantity);
 }
 
 void TradeRecorder::Record(ptime timeOfTrade, TradeOperation operation, const string & stockSymbol, double pricePaid, double quantity) {
-  ptime timeNow = microsec_clock::local_time() + (time_duration(0, 0, 1, 0));
+  ptime timeNow = microsec_clock::universal_time() + (time_duration(0, 0, 1, 0));
   if (timeOfTrade > timeNow) {
     throw runtime_error("Time of trade cannot be in the future");
   }
   
   Trade newTrade(operation, timeOfTrade, pricePaid, quantity);
 
+  // Add to data table
+  tradeTable.push_back(newTrade);
+
   // Add to connector table
   auto mapIterator = stockTradeConnectorTable.find(stockSymbol);
   if (mapIterator == stockTradeConnectorTable.end()) {
-    stockTradeConnectorTable.insert(pair<string, vector<Trade*>>(string(stockSymbol), vector<Trade*>{&newTrade}));
+    stockTradeConnectorTable.insert(pair<string, vector<Trade*>>(string(stockSymbol), vector<Trade*> {&tradeTable.back()}));
   } else {
-    stockTradeConnectorTable[stockSymbol].push_back(&newTrade);
+    stockTradeConnectorTable[stockSymbol].push_back(&tradeTable.back());
   }
-  // Add to data table
-  tradeTable.push_back(newTrade);
   
   // Send a signal noting that a new trade has been added, with the trade data.
 }
@@ -51,28 +52,30 @@ void TradeRecorder::Load(const string & stockSymbol, vector<Trade>& trades, ptim
   }
 
   vector<Trade*> stockTrades = stockTradeConnectorTable[stockSymbol];
-
+  
   ptime lowerBoundary = timeOfTrade - boundary;
   ptime upperBoundary = timeOfTrade + boundary;
 
-  auto tradesFoundIterator = find_if(stockTrades.begin(), stockTrades.end(),
-                                     [boundaryDirection, &timeOfTrade, &lowerBoundary, &upperBoundary] (const Trade* tradeInVector) {
-                                       switch (boundaryDirection) {
-                                       case Lower: 
-                                         return ((tradeInVector->getTimeOfTrade() > lowerBoundary) && (tradeInVector->getTimeOfTrade() < timeOfTrade));
-
-                                       case Upper:
-                                         return ((tradeInVector->getTimeOfTrade() > timeOfTrade) && (tradeInVector->getTimeOfTrade() < upperBoundary));
-
-                                       case Both:
-                                         return ((tradeInVector->getTimeOfTrade() > lowerBoundary) && (tradeInVector->getTimeOfTrade() < upperBoundary));
-                                       }
-                                     });
-
-  while (tradesFoundIterator != stockTrades.end()) {
-    // Copy create a new trade, don't use the one we have in the "database"
-    trades.push_back(Trade(**tradesFoundIterator));
-    
-    tradesFoundIterator++;
-  }
+  for_each(stockTrades.begin(), stockTrades.end(),
+           [&trades, boundaryDirection, &timeOfTrade, &lowerBoundary, &upperBoundary] (const Trade* tradeInVector) {
+             switch (boundaryDirection) {
+             case Lower:                                       
+               if ((tradeInVector->getTimeOfTrade() > lowerBoundary) && (tradeInVector->getTimeOfTrade() < timeOfTrade)) {
+                 trades.push_back(Trade(*tradeInVector));
+               }
+               break;
+               
+             case Upper:
+               if ((tradeInVector->getTimeOfTrade() > timeOfTrade) && (tradeInVector->getTimeOfTrade() < upperBoundary)) {
+                 trades.push_back(Trade(*tradeInVector));
+               }
+               break;
+               
+             case Both:
+               if ((tradeInVector->getTimeOfTrade() > lowerBoundary) && (tradeInVector->getTimeOfTrade() < upperBoundary)) {
+                 trades.push_back(Trade(*tradeInVector));
+               }
+               break;
+             }
+           });    
 }

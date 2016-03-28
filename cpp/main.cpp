@@ -58,19 +58,24 @@ void make_random_purchase(TradeRecorder& tradeRecorder, ptime timeOfTrade) {
   switch (share) {
   case 0:
     tradeRecorder.Record(timeOfTrade, op, teaStock.getSymbol(), (double)teaStock.getTickerPrice() * quantity, quantity);
-
+    break;
+    
   case 1:
     tradeRecorder.Record(timeOfTrade, op, popStock.getSymbol(), (double)popStock.getTickerPrice() * quantity, quantity);
-
+    break;
+    
   case 2:
     tradeRecorder.Record(timeOfTrade, op, aleStock.getSymbol(), (double)aleStock.getTickerPrice() * quantity, quantity);
-
+    break;
+    
   case 3:
     tradeRecorder.Record(timeOfTrade, op, joeStock.getSymbol(), (double)joeStock.getTickerPrice() * quantity, quantity);
-
+    break;
+    
   case 4:
     tradeRecorder.Record(timeOfTrade, op, ginStock.getSymbol(), (double)ginStock.getTickerPrice() * quantity, quantity);
-
+    break;
+    
   default:
     return;
   }
@@ -104,12 +109,12 @@ int main(int argc, char** argv) {
   // 10 trades a minute for 30 minutes
   int numberOfMinutes = 30;
   int numberOfSecondsBetweenTrades = 3; // Make sure this adds up, no tests of this
-  int numberOfTradesPerMinute = 10;
+  int numberOfTradesPerMinute = 20;
   
   // Ugly inner loop, but no worries, only 300 runs
   for (int minute = 0; minute < numberOfMinutes; minute++) {
     // Start 1 minute ago
-    ptime timeOfTrade = microsec_clock::local_time() - time_duration(0, 1 + minute, 0, 0);
+    ptime timeOfTrade = microsec_clock::universal_time() - time_duration(0, 1 + minute, 0, 0);
     
     for (int numOfTrades = 0; numOfTrades < numberOfTradesPerMinute / 2; numOfTrades++) {
       update_ticker_prices(stockTicker);
@@ -121,7 +126,7 @@ int main(int argc, char** argv) {
   cout << "Total trades made: " << tradeRecorder.getTableSize() << endl;
   
   vector<Trade> popTrades;
-  tradeRecorder.Load(popStock.getSymbol(), popTrades, microsec_clock::local_time() - time_duration(0, 1, 0, 0), time_duration(0, 10, 0, 0), Lower);
+  tradeRecorder.Load(popStock.getSymbol(), popTrades, microsec_clock::universal_time() - time_duration(0, 1, 0, 0), time_duration(0, 20, 0, 0), Lower);
   cout << "Number of popStock trades in the last 10 minutes: " << popTrades.size() << endl;
   
   // Calculate the stock price based on trades recorded for the past 15 minutes a few times
