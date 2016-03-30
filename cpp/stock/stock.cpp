@@ -70,7 +70,11 @@ template <class numericType> void Stock<numericType>::setTickerPrice (const Tick
 }
 
 template <class numericType> const numericType& Stock<numericType>::getTickerPrice () const {
-  return tickerPrice.get().getPrice();
+  if (tickerPrice) {
+    return tickerPrice.get().getPrice();
+  } else {
+    throw std::runtime_error("An attempt was made to access the ticker price without it first being set.");
+  } 
 }
 
 template <class numericType> ostream& operator<< (ostream& outputStream, const Stock<numericType>& stock) {

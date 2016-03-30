@@ -4,7 +4,8 @@ compile_flags=-fpic -std=c++11
 link_flags=-shared
 
 BOOST_INC=-I/opt/local/include/
-BOOST_LIB_DIR=-L/opt/local/lib/boost/
+BOOST_LIB_DIR=-L/opt/local/lib/
+UNIT_TEST_LIBS=-lboost_unit_test_framework-mt
 
 OUTPUT_DIR=./bin/
 OUTPUT_FILENAME=interview_test
@@ -26,23 +27,25 @@ TOOLS_INC=-Itools/
 TICKER_INC=-Iticker/
 TRADES_INC=-Itrades/
 
-all: application dynamic_libraries tests 
+all: application dynamic_libraries tests remove_obj
+	@echo "Complilation has completed successfully."
+	@echo "Please change to the output directory, ./bin/ by default, and execute the application"
+
+remove_obj:
+	@echo "Removing object files"
+	@rm $(OBJECT_FILES)
 
 clean:
-	@echo "Removing temporary files"
+	@echo "Removing all files except config"
+	@rm $(OUTPUT_DIR)/$(OUTPUT_FILENAME)
+	@rm $(OUTPUT_DIR)/*.o
 	@rm *~
-
-tests:
-	@echo "Creating unit tests"
 
 application: $(OBJECT_FILES)
 	@echo "Linking application"
 	@$(CC) -ldl $(OBJECT_FILES) -o $(OUTPUT_FILENAME)
 	@mkdir -p $(OUTPUT_DIR)
 	@mv $(OUTPUT_FILENAME) $(OUTPUT_DIR)
-
-	@echo "Removing object files"
-	@rm $(OBJECT_FILES)
 
 dynamic_libraries: $(DYNAMIC_LIBRARIES)
 
@@ -108,4 +111,55 @@ iniConfigReader.o: config/iniConfigReader.cpp
 loader.o: loader/loader.cpp
 	@echo "Compiling library loader"
 	@$(CC) $(compile_flags) $(BOOST_INC) -c loader/loader.cpp
+
+# Unit tests
+tests: commonStockTests \
+	dividendYieldCalculatorTests indexCalculatorTests peRatioCalculatorTests stockPriceCalculatorTests
+	@echo "Creating unit tests"
+
+commonStockTests: commonStock.o stock.o tickerPrice.o
+	@echo "Compiling commonStock tests"
+	@$(CC) $(compile_flags) $(STOCK_INC) $(BOOST_INC) -c tests/commonStock.cpp -o commonStockTests.o
+	@$(CC) $(BOOST_LIB_DIR) $(UNIT_TEST_LIBS) commonStockTests.o tickerPrice.o stock.o commonStock.o -o commonStockTests
+	@echo "Running commonStock tests"
+	@./commonStockTests
+	@rm commonStockTests
+
+dividendYieldCalculatorTests: dividendYieldCalculator.o preferredStock.o commonStock.o stock.o tickerPrice.o
+	@echo "Compiling dividend yield calculator tests"
+	@$(CC) $(compile_flags) $(TOOLS_INC) $(STOCK_INC) $(BOOST_INC) -c tests/dividendYieldCalculator.cpp -o dividendYieldCalculatorTests.o
+	@$(CC) $(BOOST_LIB_DIR) $(UNIT_TEST_LIBS) dividendYieldCalculatorTests.o tickerPrice.o stock.o commonStock.o preferredStock.o dividendYieldCalculator.o -o dividendYieldCalculatorTests
+
+	@echo "Running dividend yield calculation tests"
+	@./dividendYieldCalculatorTests
+	@rm dividendYieldCalculatorTests
+
+indexCalculatorTests: indexCalculator.o preferredStock.o commonStock.o stock.o tickerPrice.o
+	@echo "Compiling GBCE index calculator tests"
+	@$(CC) $(compile_flags) $(TOOLS_INC) $(STOCK_INC) $(BOOST_INC) -c tests/indexCalculator.cpp -o indexCalculatorTests.o
+	@$(CC) $(BOOST_LIB_DIR) $(UNIT_TEST_LIBS) indexCalculatorTests.o indexCalculator.o preferredStock.o tickerPrice.o stock.o commonStock.o -o indexCalculatorTests
+
+	@echo "Running GBCE index calculator tests"
+	@./indexCalculatorTests
+	@rm indexCalculatorTests
+
+peRatioCalculatorTests: peRatioCalculator.o preferredStock.o commonStock.o stock.o tickerPrice.o
+	@echo "Compiling P/E Ratio calculator tests"
+	@$(CC) $(compile_flags) $(TOOLS_INC) $(STOCK_INC) $(BOOST_INC) -c tests/peRatioCalculator.cpp -o peRatioCalculatorTests.o
+	@$(CC) $(BOOST_LIB_DIR) $(UNIT_TEST_LIBS) peRatioCalculatorTests.o peRatioCalculator.o preferredStock.o tickerPrice.o stock.o commonStock.o -o peRatioCalculatorTests 
+
+	@echo "Running P/E Ratio calculator tests"
+	@./peRatioCalculatorTests
+	@rm peRatioCalculatorTests
+
+stockPriceCalculatorTests: stockPriceCalculator.o preferredStock.o commonStock.o stock.o tickerPrice.o tradeRecorder.o
+	@echo "Compiling stock price calculator tests"
+	@$(CC) $(compile_flags) $(CONFIG_INC) $(TRADES_INC) $(TOOLS_INC) $(STOCK_INC) $(BOOST_INC) -c tests/stockPriceCalculator.cpp -o stockPriceCalculatorTests.o
+	@$(CC) $(BOOST_LIB_DIR) $(UNIT_TEST_LIBS) stockPriceCalculatorTests.o stockPriceCalculator.o preferredStock.o tradeRecorder.o tickerPrice.o stock.o commonStock.o -o stockPriceCalculatorTests
+
+	@echo "Running stock price calculator tests"
+	@./stockPriceCalculatorTests
+	@rm stockPriceCalculatorTests
+
+
 

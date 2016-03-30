@@ -11,15 +11,25 @@ template <class numericType> numericType calculateStockPrice<numericType>::opera
 }
 
 template <> float calculateStockPrice<float>::operator() (const vector<Trade>& trades) {
-  float TradePriceQuantitySum = accumulate(trades.begin(), trades.end(), 0.0f,
-                                           [] (float sumValue, const Trade& element) {
-                                             return sumValue + ((float)element.getUnitPrice() * (float)element.getQuantity());
-                                           });
-  
+  if (trades.size() == 0) {
+    return 0.0f;
+  }
+
   float QuantitySum = accumulate(trades.begin(), trades.end(), 0.0f,
                                  [] (float sumValue, const Trade& element) {
                                    return sumValue + (float)element.getQuantity();
                                  });
+  if (QuantitySum == 0.0f) {
+    return 0;
+  }
+
+  float TradePriceQuantitySum = accumulate(trades.begin(), trades.end(), 0.0f,
+                                           [] (float sumValue, const Trade& element) {
+                                             return sumValue + ((float)element.getUnitPrice() * (float)element.getQuantity());
+                                           });
+  if (TradePriceQuantitySum == 0.0f) {
+    return 0;
+  }
     
   return TradePriceQuantitySum / QuantitySum;
 }

@@ -9,6 +9,13 @@ using std::runtime_error;
 
 using boost::posix_time::microsec_clock;
 
+Trade::Trade (TradeOperation Operation, double UnitPrice, double Quantity) {
+  operation = Operation;
+  timeOfTrade = microsec_clock::universal_time();
+  unitPrice = UnitPrice;
+  quantity = Quantity;
+}
+
 Trade::Trade (TradeOperation Operation, ptime TimeOfTrade, double UnitPrice, double Quantity) {
   operation = Operation;
   timeOfTrade = TimeOfTrade;

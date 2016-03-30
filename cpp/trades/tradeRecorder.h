@@ -38,6 +38,7 @@ class Trade {
 
  public:
   // Allowing overriding of time so that we can simulate 15 minutes
+  Trade(TradeOperation, double, double);  
   Trade(TradeOperation, ptime, double, double);
 
   TradeOperation getOperation() const { return operation; }

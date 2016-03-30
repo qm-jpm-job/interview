@@ -13,11 +13,18 @@ template <class numericType> numericType calculateGBCEAllShareIndex<numericType>
 };
 
 template <> float calculateGBCEAllShareIndex<float>::operator() (const vector<float>& prices) {
+  if (prices.size() == 0) {
+    return 0.0f;
+  }
+    
   float PriceSum = accumulate(prices.begin(), prices.end(), 1.0f,
                               [] (float sum, const float& entry) {
                                 return sum * entry;
                               });
-
+  if (PriceSum == 0) {
+    return 0.0f;
+  }
+  
   float vectorLength = (float)prices.size();
   float powerToRaiseTo = 1.0 / vectorLength;
   
